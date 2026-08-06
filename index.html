@@ -31,6 +31,7 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
 .list{padding:7px;max-height:793px;overflow:auto}
 .row{
   display:grid;
+  width:100%;
   grid-template-columns:34px 1fr 28px;
   gap:8px;
   align-items:start;
@@ -45,6 +46,12 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
 .row.done .name{color:var(--done);text-decoration:line-through}
 .name{font-weight:700;font-size:13px;line-height:1.25}
 .addr{font-size:10px;color:var(--muted);margin-top:2px}
+.comment-title{
+  margin-top:9px;
+  font-size:12px;
+  font-weight:900;
+  color:#2f7d59;
+}
 .comment{
   width:100%;
   min-height:58px;
@@ -53,8 +60,9 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
   resize:vertical;
   border:1px solid var(--border);
   border-radius:8px;
-  background:#fff;
+  background:#fffdf2;
   color:var(--ink);
+  border:2px solid #d7b84a;
   font:inherit;
   font-size:12px;
   line-height:1.4
@@ -98,7 +106,7 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
 <div class="app">
 <header>
 <h1>鶯谷北口エリア ホテル制覇マップ</h1>
-<p class="sub">左：実地図上の番号ピン　／　右：ホテル名・チェック欄・コメントメモ</p>
+<p class="sub">左：実地図上の番号ピン　／　右：ホテル名・チェック欄・コメントメモ</p><div style="margin-top:7px;display:inline-block;padding:4px 9px;border-radius:999px;background:#fff3cd;border:1px solid #e2c15b;font-size:12px;font-weight:800;">コメント機能版 v2</div>
 <div class="progress-row"><div class="progress"><span id="bar"></span></div><div class="count" id="count">0 / 28</div></div>
 </header>
 
@@ -166,7 +174,7 @@ HOTELS.forEach(h=>{
     <span>
       <div class="name">${h.name}</div>
       <div class="addr">${h.address}</div>
-      <textarea class="comment" maxlength="300" placeholder="感想・料金・部屋番号などをメモ">${safeComment}</textarea>
+      <div class="comment-title">コメント</div><textarea class="comment" maxlength="300" placeholder="ここに感想・料金・部屋番号などを入力">${safeComment}</textarea>
     </span>
     <input class="chk" type="checkbox" aria-label="${h.name}を制覇済みにする" ${saved[h.id]?'checked':''}>
   `;
