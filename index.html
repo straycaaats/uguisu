@@ -4,31 +4,138 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>鶯谷北口ホテル制覇マップ</title>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <style>
 :root {
-  --bg:#f3f1ec; --panel:#fff; --ink:#202124; --muted:#6b7280;
-  --accent:#d43d49; --done:#2f7d59; --border:#d8d8d8;
+  --bg:#f3f1ec;
+  --panel:#fff;
+  --ink:#202124;
+  --muted:#6b7280;
+  --accent:#d43d49;
+  --done:#2f7d59;
+  --border:#d8d8d8;
 }
+
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif}
-.app{max-width:1500px;margin:auto;padding:10px}
-header{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 15px;margin-bottom:9px}
-h1{margin:0 0 4px;font-size:22px}
-.sub{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
-.progress-row{display:flex;gap:10px;align-items:center;margin-top:10px}
-.progress{height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;flex:1}
-.progress span{display:block;height:100%;width:0;background:var(--done);transition:.2s}
-.count{font-weight:800;min-width:80px;text-align:right}
-.layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(340px,.9fr);gap:9px;align-items:stretch}
-.map-panel,.list-panel{background:var(--panel);border:1px solid var(--border);border-radius:15px;overflow:hidden}
-#map{height:850px;width:100%}
-.list-head{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;border-bottom:1px solid var(--border)}
-.list-head h2{font-size:17px;margin:0}
-.actions{display:flex;gap:6px}
-button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer}
-#resetBtn{background:#ececec} #fitBtn{background:#222;color:white}
-.list{padding:7px;max-height:793px;overflow:auto}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif
+}
+
+.app{
+  max-width:1500px;
+  margin:auto;
+  padding:10px
+}
+
+header{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:13px 15px;
+  margin-bottom:9px
+}
+
+h1{
+  margin:0 0 4px;
+  font-size:22px
+}
+
+.sub{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45
+}
+
+.progress-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:10px
+}
+
+.progress{
+  height:10px;
+  background:#e5e7eb;
+  border-radius:20px;
+  overflow:hidden;
+  flex:1
+}
+
+.progress span{
+  display:block;
+  height:100%;
+  width:0;
+  background:var(--done);
+  transition:.2s
+}
+
+.count{
+  font-weight:800;
+  min-width:80px;
+  text-align:right
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.75fr) minmax(340px,.9fr);
+  gap:9px;
+  align-items:stretch
+}
+
+.map-panel,.list-panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:15px;
+  overflow:hidden
+}
+
+#map{
+  height:850px;
+  width:100%
+}
+
+.list-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 13px;
+  border-bottom:1px solid var(--border)
+}
+
+.list-head h2{
+  font-size:17px;
+  margin:0
+}
+
+.actions{
+  display:flex;
+  gap:6px
+}
+
+button{
+  border:0;
+  border-radius:8px;
+  padding:7px 9px;
+  font-weight:700;
+  cursor:pointer
+}
+
+#resetBtn{background:#ececec}
+#fitBtn{background:#222;color:white}
+
+.list{
+  padding:7px;
+  max-height:793px;
+  overflow:auto
+}
+
 .row{
   display:grid;
   width:100%;
@@ -39,26 +146,59 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
   border-bottom:1px solid #ececec;
   border-radius:8px
 }
+
 .row:hover{background:#f7f7f7}
-.num{width:30px;height:30px;border:2px solid var(--accent);color:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
+
+.num{
+  width:30px;
+  height:30px;
+  border:2px solid var(--accent);
+  color:var(--accent);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800
+}
+
 .row.done{background:#edf7f1}
-.row.done .num{background:var(--done);border-color:var(--done);color:white}
-.row.done .name{color:var(--done);text-decoration:line-through}
-.name{font-weight:700;font-size:13px;line-height:1.25}
-.addr{font-size:10px;color:var(--muted);margin-top:2px}
+
+.row.done .num{
+  background:var(--done);
+  border-color:var(--done);
+  color:white
+}
+
+.row.done .name{
+  color:var(--done);
+  text-decoration:line-through
+}
+
+.name{
+  font-weight:700;
+  font-size:13px;
+  line-height:1.25
+}
+
+.addr{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px
+}
+
 .comment-title{
   margin-top:9px;
   font-size:12px;
   font-weight:900;
-  color:#2f7d59;
+  color:#2f7d59
 }
+
 .comment{
   width:100%;
   min-height:58px;
   margin-top:7px;
   padding:7px 8px;
   resize:vertical;
-  border:1px solid var(--border);
   border-radius:8px;
   background:#fffdf2;
   color:var(--ink);
@@ -67,17 +207,125 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
   font-size:12px;
   line-height:1.4
 }
+
 .comment:focus{
   outline:2px solid rgba(47,125,89,.25);
   border-color:var(--done)
 }
-.comment::placeholder{color:#9ca3af}
-.chk{width:21px;height:21px;accent-color:var(--done);margin-top:4px}
-.status{padding:8px 13px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:#fafafa}
-.marker-number{width:30px;height:30px;border-radius:50%;background:var(--accent);border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 2px 6px #0005}
-.marker-number.done{background:var(--done)}
-.leaflet-div-icon{background:transparent;border:0}
-.note{margin-top:9px;background:#fff;border:1px solid var(--border);border-radius:13px;padding:10px 12px;color:var(--muted);font-size:12px;line-height:1.55}
+
+.comment::placeholder{
+  color:#9ca3af
+}
+
+.chk{
+  width:21px;
+  height:21px;
+  accent-color:var(--done);
+  margin-top:4px
+}
+
+.status{
+  padding:8px 13px;
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px solid var(--border);
+  background:#fafafa
+}
+
+.marker-number{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:var(--accent);
+  border:2px solid white;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  box-shadow:0 2px 6px #0005
+}
+
+.marker-number.done{
+  background:var(--done)
+}
+
+.leaflet-div-icon{
+  background:transparent;
+  border:0
+}
+
+.note{
+  margin-top:9px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:13px;
+  padding:10px 12px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55
+}
+
+.mobile-tools{
+  position:sticky;
+  top:6px;
+  z-index:1200;
+  gap:7px;
+  margin-bottom:7px
+}
+
+.mobile-tools button{
+  flex:1;
+  border:0;
+  border-radius:10px;
+  padding:10px;
+  font-weight:800
+}
+
+#showMapBtn{
+  background:#222;
+  color:#fff
+}
+
+#showListBtn{
+  background:#fff;
+  border:1px solid var(--border)
+}
+
+.share-strip{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap
+}
+
+.share-status{
+  padding:6px 10px;
+  border-radius:999px;
+  background:#eef2ff;
+  border:1px solid #a5b4fc;
+  font-size:12px;
+  font-weight:800
+}
+
+.share-status.online{
+  background:#eaf8ef;
+  border-color:#65a97d;
+  color:#25633f
+}
+
+.share-status.error{
+  background:#fff0f0;
+  border-color:#d88;
+  color:#922
+}
+
+#copyShareBtn{
+  background:#334155;
+  color:#fff
+}
+
 @media(max-width:850px){
   .layout{grid-template-columns:1fr}
   #map{height:64vh;min-height:480px}
@@ -86,220 +334,889 @@ button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer
   .list{max-height:none}
   .mobile-tools{display:flex}
 }
-@media(min-width:851px){.mobile-tools{display:none}}
-.mobile-tools{
-  position:sticky;top:6px;z-index:1200;gap:7px;margin-bottom:7px
-}
-.mobile-tools button{
-  flex:1;border:0;border-radius:10px;padding:10px;font-weight:800
-}
-#showMapBtn{background:#222;color:#fff}
-#showListBtn{background:#fff;border:1px solid var(--border)}
-.popup-check{
-  display:flex;align-items:center;gap:8px;margin-top:9px;font-weight:700
-}
-.popup-check input{width:22px;height:22px;accent-color:var(--done)}
 
+@media(min-width:851px){
+  .mobile-tools{display:none}
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
+
 <header>
 <h1>鶯谷北口エリア ホテル制覇マップ</h1>
-<p class="sub">左：実地図上の番号ピン　／　右：ホテル名・チェック欄・コメントメモ</p><div style="margin-top:7px;display:inline-block;padding:4px 9px;border-radius:999px;background:#fff3cd;border:1px solid #e2c15b;font-size:12px;font-weight:800;">コメント機能版 v2</div>
-<div class="progress-row"><div class="progress"><span id="bar"></span></div><div class="count" id="count">0 / 28</div></div>
+
+<p class="sub">
+左：実地図上の番号ピン ／ 右：ホテル名・チェック欄・コメントメモ
+</p>
+
+<div style="margin-top:7px;display:inline-block;padding:4px 9px;border-radius:999px;background:#fff3cd;border:1px solid #e2c15b;font-size:12px;font-weight:800;">
+リアルタイム共有版 v3
+</div>
+
+<div class="progress-row">
+  <div class="progress">
+    <span id="bar"></span>
+  </div>
+  <div class="count" id="count">0 / 28</div>
+</div>
+
+<div class="share-strip">
+  <span id="shareStatus" class="share-status">共有データへ接続中…</span>
+  <button id="copyShareBtn" type="button">共有URLをコピー</button>
+</div>
+
 </header>
 
 <div class="mobile-tools">
   <button id="showMapBtn" type="button">地図を見る</button>
   <button id="showListBtn" type="button">一覧・チェック</button>
 </div>
+
 <div class="layout">
-  <section class="map-panel"><div id="map"></div></section>
-  <aside class="list-panel">
-    <div class="list-head">
-      <h2>ホテル一覧（28軒）</h2>
-      <div class="actions"><button id="fitBtn">全体表示</button><button id="resetBtn" title="チェックのみ解除。コメントは残ります">チェック解除</button></div>
-    </div>
-    <div class="list" id="list"></div>
-    <div class="status" id="status">地図を準備しています…</div>
-  </aside>
+
+<section class="map-panel">
+  <div id="map"></div>
+</section>
+
+<aside class="list-panel">
+
+<div class="list-head">
+  <h2>ホテル一覧（28軒）</h2>
+
+  <div class="actions">
+    <button id="fitBtn">全体表示</button>
+    <button id="resetBtn">チェック解除</button>
+  </div>
+</div>
+
+<div class="list" id="list"></div>
+
+<div class="status" id="status">
+地図を準備しています…
+</div>
+
+</aside>
 </div>
 
 <div class="note">
 OpenStreetMapの実地図を表示し、住所の座標化には国土地理院の住所検索を使用する。
 同一住所の「Bella HOTEL」と「HOTEL LUX」は、重ならないようにピンを少しずらして表示する。
 </div>
+
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const HOTELS = [{"id": 1, "name": "シャルム鶯谷Ⅰ", "address": "東京都台東区根岸1-8-12"}, {"id": 2, "name": "HOTEL Apio & EL Apio", "address": "東京都台東区根岸1-8-15"}, {"id": 3, "name": "ホテル サンモリッツ・テラ", "address": "東京都台東区根岸1-7-1"}, {"id": 4, "name": "HOTEL EXE 鶯谷", "address": "東京都台東区根岸1-7-2"}, {"id": 5, "name": "ホテル プランタン", "address": "東京都台東区根岸1-7-5"}, {"id": 6, "name": "HOTEL KARUTA UGUISUDANI", "address": "東京都台東区根岸1-7-12"}, {"id": 7, "name": "ホテル バリバリ鶯谷", "address": "東京都台東区根岸1-7-15"}, {"id": 8, "name": "HOTEL EXE ANNEX 鶯谷", "address": "東京都台東区根岸1-6-3"}, {"id": 9, "name": "HOTEL ENJU", "address": "東京都台東区根岸1-5-3"}, {"id": 10, "name": "HOTEL SAVOY 鶯谷", "address": "東京都台東区根岸1-5-5"}, {"id": 11, "name": "HOTEL ENJU 別邸万華", "address": "東京都台東区根岸1-5-6"}, {"id": 12, "name": "鶯谷 Bella HOTEL", "address": "東京都台東区根岸1-5-7"}, {"id": 13, "name": "HOTEL LUX", "address": "東京都台東区根岸1-5-7"}, {"id": 14, "name": "Asian P-DOOR", "address": "東京都台東区根岸1-5-22"}, {"id": 15, "name": "HOTEL SERA Apio", "address": "東京都台東区根岸1-5-23"}, {"id": 16, "name": "SCHALL", "address": "東京都台東区根岸1-3-9"}, {"id": 17, "name": "HOTEL NIKKO 鶯谷", "address": "東京都台東区根岸1-3-11"}, {"id": 18, "name": "ホテル サンモリッツ・エコ", "address": "東京都台東区根岸1-3-12"}, {"id": 19, "name": "ホテル サンモリッツ", "address": "東京都台東区根岸1-3-15"}, {"id": 20, "name": "ホテル シャーウッド", "address": "東京都台東区根岸1-2-21"}, {"id": 21, "name": "HOTEL STELA", "address": "東京都台東区根岸2-2-9"}, {"id": 22, "name": "ホテル 絆 KIZUNA", "address": "東京都台東区根岸2-2-11"}, {"id": 23, "name": "HOTEL SEEDS 鶯谷店", "address": "東京都台東区根岸2-4-11"}, {"id": 24, "name": "ホテル ニューシーズ鶯谷", "address": "東京都台東区根岸2-4-12"}, {"id": 25, "name": "Legend P-DOOR", "address": "東京都台東区根岸2-5-3"}, {"id": 26, "name": "P-DOOR GOLD", "address": "東京都台東区根岸2-10-17"}, {"id": 27, "name": "ホテル ルナ＆シーヘブン", "address": "東京都台東区根岸2-11-9"}, {"id": 28, "name": "HOTEL Diana", "address": "東京都台東区根岸2-13-7"}];
-const STORAGE_KEY='uguisudani_conquest_exact_v1';
-const COMMENT_KEY='uguisudani_hotel_comments_v1';
-const map=L.map('map',{zoomControl:true}).setView([35.7214,139.7787],16);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  onSnapshot,
+  getDocs,
+  writeBatch,
+  serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBZy-k3B2_Z88qEbwMzWizQXl_RKqP6s9k",
+  authDomain:"uguisu-map.firebaseapp.com",
+  projectId:"uguisu-map",
+  storageBucket:"uguisu-map.firebasestorage.app",
+  messagingSenderId:"785750619735",
+  appId:"1:785750619735:web:fd5d84665aad10720a1512",
+  measurementId:"G-WXG7HP6Z1M"
+};
+
+
+const HOTELS = [
+{id:1,name:"シャルム鶯谷Ⅰ",address:"東京都台東区根岸1-8-12"},
+{id:2,name:"HOTEL Apio & EL Apio",address:"東京都台東区根岸1-8-15"},
+{id:3,name:"ホテル サンモリッツ・テラ",address:"東京都台東区根岸1-7-1"},
+{id:4,name:"HOTEL EXE 鶯谷",address:"東京都台東区根岸1-7-2"},
+{id:5,name:"ホテル プランタン",address:"東京都台東区根岸1-7-5"},
+{id:6,name:"HOTEL KARUTA UGUISUDANI",address:"東京都台東区根岸1-7-12"},
+{id:7,name:"ホテル バリバリ鶯谷",address:"東京都台東区根岸1-7-15"},
+{id:8,name:"HOTEL EXE ANNEX 鶯谷",address:"東京都台東区根岸1-6-3"},
+{id:9,name:"HOTEL ENJU",address:"東京都台東区根岸1-5-3"},
+{id:10,name:"HOTEL SAVOY 鶯谷",address:"東京都台東区根岸1-5-5"},
+{id:11,name:"HOTEL ENJU 別邸万華",address:"東京都台東区根岸1-5-6"},
+{id:12,name:"鶯谷 Bella HOTEL",address:"東京都台東区根岸1-5-7"},
+{id:13,name:"HOTEL LUX",address:"東京都台東区根岸1-5-7"},
+{id:14,name:"Asian P-DOOR",address:"東京都台東区根岸1-5-22"},
+{id:15,name:"HOTEL SERA Apio",address:"東京都台東区根岸1-5-23"},
+{id:16,name:"SCHALL",address:"東京都台東区根岸1-3-9"},
+{id:17,name:"HOTEL NIKKO 鶯谷",address:"東京都台東区根岸1-3-11"},
+{id:18,name:"ホテル サンモリッツ・エコ",address:"東京都台東区根岸1-3-12"},
+{id:19,name:"ホテル サンモリッツ",address:"東京都台東区根岸1-3-15"},
+{id:20,name:"ホテル シャーウッド",address:"東京都台東区根岸1-2-21"},
+{id:21,name:"HOTEL STELA",address:"東京都台東区根岸2-2-9"},
+{id:22,name:"ホテル 絆 KIZUNA",address:"東京都台東区根岸2-2-11"},
+{id:23,name:"HOTEL SEEDS 鶯谷店",address:"東京都台東区根岸2-4-11"},
+{id:24,name:"ホテル ニューシーズ鶯谷",address:"東京都台東区根岸2-4-12"},
+{id:25,name:"Legend P-DOOR",address:"東京都台東区根岸2-5-3"},
+{id:26,name:"P-DOOR GOLD",address:"東京都台東区根岸2-10-17"},
+{id:27,name:"ホテル ルナ＆シーヘブン",address:"東京都台東区根岸2-11-9"},
+{id:28,name:"HOTEL Diana",address:"東京都台東区根岸2-13-7"}
+];
+
+
+const ROOM_ID =
+  new URLSearchParams(location.search).get("room");
+
+const STORAGE_KEY =
+  "uguisudani_conquest_exact_v1";
+
+const COMMENT_KEY =
+  "uguisudani_hotel_comments_v1";
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+const map = L.map("map",{
+  zoomControl:true
+}).setView([35.7214,139.7787],16);
+
+
+L.tileLayer(
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
   maxZoom:19,
-  attribution:'&copy; OpenStreetMap contributors'
+  attribution:"&copy; OpenStreetMap contributors"
 }).addTo(map);
 
-const list=document.getElementById('list');
-const statusEl=document.getElementById('status');
-const markers=new Map();
-const bounds=L.latLngBounds([]);
-const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-const comments=JSON.parse(localStorage.getItem(COMMENT_KEY)||'{}');
+
+const list = document.getElementById("list");
+const statusEl = document.getElementById("status");
+const shareStatus = document.getElementById("shareStatus");
+
+const markers = new Map();
+const bounds = L.latLngBounds([]);
+
+const saved = {};
+const comments = {};
+const rowRefs = new Map();
+
+
+function setShareStatus(text,type=""){
+  shareStatus.textContent=text;
+  shareStatus.className=
+    "share-status"+(type ? " "+type : "");
+}
+
 
 function markerIcon(id,done=false){
-  return L.divIcon({
-    className:'leaflet-div-icon',
-    html:`<div class="marker-number ${done?'done':''}">${id}</div>`,
-    iconSize:[30,30], iconAnchor:[15,15]
-  });
+
+return L.divIcon({
+  className:"leaflet-div-icon",
+  html:
+  `<div class="marker-number ${done?"done":""}">
+  ${id}
+  </div>`,
+  iconSize:[30,30],
+  iconAnchor:[15,15]
+});
+
 }
 
-HOTELS.forEach(h=>{
-  const row=document.createElement('div');
-  row.className='row'+(saved[h.id]?' done':'');
-  row.dataset.id=h.id;
-
-  const safeComment=(comments[h.id]||'')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;')
-    .replaceAll('"','&quot;');
-
-  row.innerHTML=`
-    <span class="num">${h.id}</span>
-    <span>
-      <div class="name">${h.name}</div>
-      <div class="addr">${h.address}</div>
-      <div class="comment-title">コメント</div><textarea class="comment" maxlength="300" placeholder="ここに感想・料金・部屋番号などを入力">${safeComment}</textarea>
-    </span>
-    <input class="chk" type="checkbox" aria-label="${h.name}を制覇済みにする" ${saved[h.id]?'checked':''}>
-  `;
-
-  const checkbox=row.querySelector('.chk');
-  const comment=row.querySelector('.comment');
-
-  checkbox.addEventListener('change',e=>{
-    saved[h.id]=e.target.checked;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));
-    row.classList.toggle('done',e.target.checked);
-    const m=markers.get(h.id);
-    if(m)m.setIcon(markerIcon(h.id,e.target.checked));
-    updateProgress();
-  });
-
-  let saveTimer;
-  comment.addEventListener('input',e=>{
-    clearTimeout(saveTimer);
-    saveTimer=setTimeout(()=>{
-      comments[h.id]=e.target.value;
-      localStorage.setItem(COMMENT_KEY,JSON.stringify(comments));
-    },250);
-  });
-
-  list.appendChild(row);
-});
 
 function updateProgress(){
-  const done=HOTELS.filter(h=>saved[h.id]).length;
-  document.getElementById('count').textContent=`${done} / ${HOTELS.length}`;
-  document.getElementById('bar').style.width=`${done/HOTELS.length*100}%`;
+
+const done =
+  HOTELS.filter(h=>saved[h.id]).length;
+
+document.getElementById("count").textContent =
+  `${done} / ${HOTELS.length}`;
+
+document.getElementById("bar").style.width =
+  `${done/HOTELS.length*100}%`;
+
 }
+
+
+function applyHotelState(id,state={}){
+
+id=Number(id);
+
+const row=rowRefs.get(id);
+
+if(!row)return;
+
+const checked=!!state.done;
+const comment=state.comment||"";
+
+saved[id]=checked;
+comments[id]=comment;
+
+const cb=row.querySelector(".chk");
+const ta=row.querySelector(".comment");
+
+cb.checked=checked;
+
+if(document.activeElement!==ta){
+  ta.value=comment;
+}
+
+row.classList.toggle("done",checked);
+
+const marker=markers.get(id);
+
+if(marker){
+  marker.setIcon(markerIcon(id,checked));
+}
+
 updateProgress();
 
-const cache=JSON.parse(localStorage.getItem('uguisudani_gsi_cache_v1')||'{}');
-
-async function geocode(h,index){
-  if(cache[h.address]) return cache[h.address];
-
-  const query=h.address.replace('東京都','');
-  const url='https://msearch.gsi.go.jp/address-search/AddressSearch?q='+encodeURIComponent(query);
-  const r=await fetch(url);
-  if(!r.ok) throw new Error('GSI geocode failed');
-
-  const j=await r.json();
-  if(!Array.isArray(j) || !j.length || !j[0].geometry) throw new Error('not found');
-
-  const coords=j[0].geometry.coordinates;
-  const p={lat:Number(coords[1]),lon:Number(coords[0])};
-  if(!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) throw new Error('invalid coordinates');
-
-  cache[h.address]=p;
-  localStorage.setItem('uguisudani_gsi_cache_v1',JSON.stringify(cache));
-  return p;
 }
 
-async function build(){
-  let ok=0,fail=0;
-  for(let i=0;i<HOTELS.length;i++){
-    const h=HOTELS[i];
-    statusEl.textContent=`位置確認中… ${i+1} / ${HOTELS.length}`;
-    try{
-      const p=await geocode(h,i);
-      let lat=p.lat, lon=p.lon;
-      // 同一住所ピンの重なり回避
-      if(h.id===13){lat+=0.000035;lon+=0.000045;}
-      const m=L.marker([lat,lon],{icon:markerIcon(h.id,!!saved[h.id])}).addTo(map);
-      function popupHtml(){
-        return `<div><b>${h.id}. ${h.name}</b><br><span style="font-size:11px">${h.address}</span>
-        <label class="popup-check"><input type="checkbox" data-popup-id="${h.id}" ${saved[h.id]?'checked':''}> 行った</label></div>`;
-      }
-      m.bindPopup(popupHtml());
-      m.on('popupopen',()=>{
-        const cb=document.querySelector(`input[data-popup-id="${h.id}"]`);
-        if(cb){
-          cb.checked=!!saved[h.id];
-          cb.addEventListener('change',()=>{
-            saved[h.id]=cb.checked;
-            localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));
-            const listCb=document.querySelector(`.row[data-id="${h.id}"] .chk`);
-            if(listCb) listCb.checked=cb.checked;
-            const row=document.querySelector(`.row[data-id="${h.id}"]`);
-            row?.classList.toggle('done',cb.checked);
-            m.setIcon(markerIcon(h.id,cb.checked));
-            updateProgress();
-            m.setPopupContent(popupHtml());
-          },{once:true});
-        }
-      });
-      markers.set(h.id,m);
-      bounds.extend([lat,lon]);
-      ok++;
-    }catch(e){
-      fail++;
-      const row=document.querySelector(`.row[data-id="${h.id}"] .addr`);
-      if(row)row.textContent=h.address+'（位置取得失敗）';
-    }
-    await new Promise(r=>setTimeout(r,120));
+
+async function saveHotel(id,patch){
+
+if(!ROOM_ID)return;
+
+await setDoc(
+  doc(db,"uguisu",ROOM_ID,"hotels",String(id)),
+  {
+    ...patch,
+    updatedAt:serverTimestamp()
+  },
+  {merge:true}
+);
+
+}
+
+
+function buildRows(){
+
+HOTELS.forEach(h=>{
+
+const row=document.createElement("div");
+
+row.className="row";
+row.dataset.id=h.id;
+
+row.innerHTML=`
+
+<span class="num">${h.id}</span>
+
+<span>
+
+<div class="name">
+${h.name}
+</div>
+
+<div class="addr">
+${h.address}
+</div>
+
+<div class="comment-title">
+コメント
+</div>
+
+<textarea
+class="comment"
+maxlength="300"
+placeholder="ここに感想・料金・部屋番号などを入力">
+</textarea>
+
+</span>
+
+<input
+class="chk"
+type="checkbox"
+aria-label="${h.name}を制覇済みにする">
+
+`;
+
+
+const cb=row.querySelector(".chk");
+const ta=row.querySelector(".comment");
+
+
+cb.addEventListener("change",async()=>{
+
+row.classList.toggle("done",cb.checked);
+
+saved[h.id]=cb.checked;
+
+const marker=markers.get(h.id);
+
+if(marker){
+ marker.setIcon(markerIcon(h.id,cb.checked));
+}
+
+updateProgress();
+
+try{
+
+await saveHotel(
+ h.id,
+ {done:cb.checked}
+);
+
+}catch(e){
+
+console.error(e);
+
+setShareStatus(
+ "チェック保存に失敗",
+ "error"
+);
+
+}
+
+});
+
+
+let timer;
+
+ta.addEventListener("input",()=>{
+
+comments[h.id]=ta.value;
+
+clearTimeout(timer);
+
+timer=setTimeout(async()=>{
+
+try{
+
+await saveHotel(
+ h.id,
+ {comment:ta.value}
+);
+
+}catch(e){
+
+console.error(e);
+
+setShareStatus(
+ "コメント保存に失敗",
+ "error"
+);
+
+}
+
+},500);
+
+});
+
+
+rowRefs.set(h.id,row);
+
+list.appendChild(row);
+
+});
+
+}
+
+
+async function connectSharedData(){
+
+if(!ROOM_ID){
+
+setShareStatus(
+ "共有URLが不正です",
+ "error"
+);
+
+statusEl.textContent=
+ "URLに共有ルームが指定されていません。";
+
+document
+.querySelectorAll(".chk,.comment")
+.forEach(el=>el.disabled=true);
+
+return;
+
+}
+
+
+const hotelsRef =
+ collection(
+  db,
+  "uguisu",
+  ROOM_ID,
+  "hotels"
+ );
+
+
+try{
+
+const existing =
+ await getDocs(hotelsRef);
+
+
+if(existing.empty){
+
+const lc =
+ JSON.parse(
+  localStorage.getItem(STORAGE_KEY)||"{}"
+ );
+
+const lm =
+ JSON.parse(
+  localStorage.getItem(COMMENT_KEY)||"{}"
+ );
+
+
+if(
+ Object.keys(lc).length ||
+ Object.keys(lm).length
+){
+
+const batch=writeBatch(db);
+
+HOTELS.forEach(h=>{
+
+if(lc[h.id] || lm[h.id]){
+
+batch.set(
+ doc(
+  db,
+  "uguisu",
+  ROOM_ID,
+  "hotels",
+  String(h.id)
+ ),
+ {
+  done:!!lc[h.id],
+  comment:lm[h.id]||"",
+  updatedAt:serverTimestamp()
+ },
+ {merge:true}
+);
+
+}
+
+});
+
+await batch.commit();
+
+}
+
+}
+
+
+onSnapshot(
+
+hotelsRef,
+
+snapshot=>{
+
+snapshot
+.docChanges()
+.forEach(change=>{
+
+applyHotelState(
+ change.doc.id,
+ change.type==="removed"
+ ? {done:false,comment:""}
+ : change.doc.data()
+);
+
+});
+
+setShareStatus(
+ "リアルタイム共有中",
+ "online"
+);
+
+},
+
+error=>{
+
+console.error(error);
+
+setShareStatus(
+ "共有接続エラー",
+ "error"
+);
+
+}
+
+);
+
+
+}catch(e){
+
+console.error(e);
+
+setShareStatus(
+ "共有接続エラー",
+ "error"
+);
+
+}
+
+}
+
+
+const cache =
+ JSON.parse(
+  localStorage.getItem(
+   "uguisudani_gsi_cache_v1"
+  )||"{}"
+ );
+
+
+async function geocode(h){
+
+if(cache[h.address]){
+ return cache[h.address];
+}
+
+const q =
+ h.address.replace("東京都","");
+
+const response =
+ await fetch(
+  "https://msearch.gsi.go.jp/address-search/AddressSearch?q="
+  +encodeURIComponent(q)
+ );
+
+
+if(!response.ok){
+ throw new Error("GSI");
+}
+
+
+const data =
+ await response.json();
+
+
+if(
+ !Array.isArray(data) ||
+ !data.length ||
+ !data[0].geometry
+){
+ throw new Error("not found");
+}
+
+
+const coordinates =
+ data[0].geometry.coordinates;
+
+
+const position={
+ lat:Number(coordinates[1]),
+ lon:Number(coordinates[0])
+};
+
+
+cache[h.address]=position;
+
+
+localStorage.setItem(
+ "uguisudani_gsi_cache_v1",
+ JSON.stringify(cache)
+);
+
+
+return position;
+
+}
+
+
+async function buildMap(){
+
+let ok=0;
+let fail=0;
+
+
+for(
+ let i=0;
+ i<HOTELS.length;
+ i++
+){
+
+const h=HOTELS[i];
+
+
+statusEl.textContent =
+ `位置確認中… ${i+1} / ${HOTELS.length}`;
+
+
+try{
+
+const p=await geocode(h);
+
+let lat=p.lat;
+let lon=p.lon;
+
+
+/* HOTEL LUXはBella HOTELと同住所なので少しずらす */
+
+if(h.id===13){
+
+lat+=0.000035;
+lon+=0.000045;
+
+}
+
+
+const marker =
+ L.marker(
+  [lat,lon],
+  {
+   icon:markerIcon(
+    h.id,
+    !!saved[h.id]
+   )
   }
-  if(bounds.isValid()) map.fitBounds(bounds.pad(0.08));
-  statusEl.textContent=`位置取得完了：${ok}軒${fail?`／未取得 ${fail}軒`:''}`;
+ )
+ .addTo(map);
+
+
+marker.bindPopup(`
+
+<div>
+
+<b>
+${h.id}. ${h.name}
+</b>
+
+<br>
+
+<span style="font-size:11px">
+${h.address}
+</span>
+
+<br>
+
+<span style="font-size:11px;color:#666">
+編集は「一覧・チェック」から
+</span>
+
+</div>
+
+`);
+
+
+markers.set(h.id,marker);
+
+bounds.extend([lat,lon]);
+
+ok++;
+
+}catch(e){
+
+fail++;
+
+const addressEl =
+ document.querySelector(
+ `.row[data-id="${h.id}"] .addr`
+ );
+
+
+if(addressEl){
+
+addressEl.textContent =
+ h.address+"（位置取得失敗）";
+
 }
 
-document.getElementById('fitBtn').addEventListener('click',()=>{if(bounds.isValid())map.fitBounds(bounds.pad(.08));});
-document.getElementById('resetBtn').addEventListener('click',()=>{
-  HOTELS.forEach(h=>saved[h.id]=false);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));
-  document.querySelectorAll('.row').forEach(r=>r.classList.remove('done'));
-  document.querySelectorAll('.chk').forEach(c=>c.checked=false);
-  markers.forEach((m,id)=>m.setIcon(markerIcon(id,false)));
-  updateProgress();
+}
+
+
+await new Promise(
+ resolve=>setTimeout(resolve,120)
+);
+
+}
+
+
+if(bounds.isValid()){
+
+map.fitBounds(
+ bounds.pad(.08)
+);
+
+}
+
+
+statusEl.textContent =
+ `位置取得完了：${ok}軒${
+ fail ? `／未取得 ${fail}軒` : ""
+ }`;
+
+}
+
+
+document
+.getElementById("copyShareBtn")
+.addEventListener("click",async()=>{
+
+try{
+
+await navigator.clipboard.writeText(
+ location.href
+);
+
+const button =
+ document.getElementById(
+  "copyShareBtn"
+ );
+
+const original =
+ button.textContent;
+
+button.textContent =
+ "コピー完了";
+
+setTimeout(
+ ()=>button.textContent=original,
+ 1500
+);
+
+}catch{
+
+prompt(
+ "このURLをコピーしてください",
+ location.href
+);
+
+}
+
 });
-const listPanel=document.querySelector('.list-panel');
-const mapPanel=document.querySelector('.map-panel');
-document.getElementById('showListBtn')?.addEventListener('click',()=>{
-  listPanel.classList.add('open');
-  listPanel.scrollIntoView({behavior:'smooth',block:'start'});
+
+
+document
+.getElementById("fitBtn")
+.addEventListener("click",()=>{
+
+if(bounds.isValid()){
+
+map.fitBounds(
+ bounds.pad(.08)
+);
+
+}
+
 });
-document.getElementById('showMapBtn')?.addEventListener('click',()=>{
-  listPanel.classList.remove('open');
-  mapPanel.scrollIntoView({behavior:'smooth',block:'start'});
-  setTimeout(()=>map.invalidateSize(),250);
+
+
+document
+.getElementById("resetBtn")
+.addEventListener("click",async()=>{
+
+if(
+ !ROOM_ID ||
+ !confirm(
+  "共有している全チェックを解除します。コメントは残します。"
+ )
+){
+ return;
+}
+
+
+try{
+
+const batch =
+ writeBatch(db);
+
+
+HOTELS.forEach(h=>{
+
+batch.set(
+
+doc(
+ db,
+ "uguisu",
+ ROOM_ID,
+ "hotels",
+ String(h.id)
+),
+
+{
+ done:false,
+ updatedAt:serverTimestamp()
+},
+
+{merge:true}
+
+);
+
 });
-build();
+
+
+await batch.commit();
+
+
+}catch(e){
+
+console.error(e);
+
+setShareStatus(
+ "全解除に失敗",
+ "error"
+);
+
+}
+
+});
+
+
+const listPanel =
+ document.querySelector(".list-panel");
+
+const mapPanel =
+ document.querySelector(".map-panel");
+
+
+document
+.getElementById("showListBtn")
+?.addEventListener("click",()=>{
+
+listPanel.classList.add("open");
+
+listPanel.scrollIntoView({
+ behavior:"smooth",
+ block:"start"
+});
+
+});
+
+
+document
+.getElementById("showMapBtn")
+?.addEventListener("click",()=>{
+
+listPanel.classList.remove("open");
+
+mapPanel.scrollIntoView({
+ behavior:"smooth",
+ block:"start"
+});
+
+setTimeout(
+ ()=>map.invalidateSize(),
+ 250
+);
+
+});
+
+
+buildRows();
+
+updateProgress();
+
+connectSharedData();
+
+buildMap();
+
 </script>
+
 </body>
 </html>
