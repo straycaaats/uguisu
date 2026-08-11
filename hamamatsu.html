@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>浜松・浜名湖 COMPLETE MAP</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root {
+  --bg:#f3f1ec; --panel:#fff; --ink:#202124; --muted:#6b7280;
+  --accent:#d43d49; --done:#2f7d59; --border:#d8d8d8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif}
+.app{max-width:1500px;margin:auto;padding:10px}
+header{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 15px;margin-bottom:9px}
+h1{margin:0 0 4px;font-size:22px}
+.sub{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.progress-row{display:flex;gap:10px;align-items:center;margin-top:10px}
+.progress{height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;flex:1}
+.progress span{display:block;height:100%;width:0;background:var(--done);transition:.2s}
+.count{font-weight:800;min-width:80px;text-align:right}
+.layout{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(340px,.9fr);gap:9px;align-items:stretch}
+.map-panel,.list-panel{background:var(--panel);border:1px solid var(--border);border-radius:15px;overflow:hidden}
+#map{height:850px;width:100%}
+.list-head{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;border-bottom:1px solid var(--border)}
+.list-head h2{font-size:17px;margin:0}
+.actions{display:flex;gap:6px}
+button{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer}
+#resetBtn{background:#ececec} #fitBtn{background:#222;color:white}
+.list{padding:7px;max-height:793px;overflow:auto}
+.row{
+  display:grid;
+  width:100%;
+  grid-template-columns:34px 1fr 28px;
+  gap:8px;
+  align-items:start;
+  padding:9px 7px;
+  border-bottom:1px solid #ececec;
+  border-radius:8px
+}
+.row:hover{background:#f7f7f7}
+.num{width:30px;height:30px;border:2px solid var(--accent);color:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
+.row.done{background:#edf7f1}
+.row.done .num{background:var(--done);border-color:var(--done);color:white}
+.row.done .name{color:var(--done);text-decoration:line-through}
+.name{font-weight:700;font-size:13px;line-height:1.25}
+.addr{font-size:10px;color:var(--muted);margin-top:2px}
+.comment-title{
+  margin-top:9px;
+  font-size:12px;
+  font-weight:900;
+  color:#2f7d59;
+}
+.comment{
+  width:100%;
+  min-height:58px;
+  margin-top:7px;
+  padding:7px 8px;
+  resize:vertical;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fffdf2;
+  color:var(--ink);
+  border:2px solid #d7b84a;
+  font:inherit;
+  font-size:12px;
+  line-height:1.4
+}
+.comment:focus{
+  outline:2px solid rgba(47,125,89,.25);
+  border-color:var(--done)
+}
+.comment::placeholder{color:#9ca3af}
+.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+.detail-field{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:#4b5563}
+.detail-field input,.detail-field select{width:100%;min-height:36px;padding:6px 7px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:12px}
+.facility-title{margin-top:9px;font-size:11px;font-weight:900;color:#4b5563}
+.facilities{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.facility-chip{position:relative}.facility-chip input{position:absolute;opacity:0;pointer-events:none}.facility-chip span{display:block;padding:5px 8px;border:1px solid #cbd5e1;border-radius:999px;background:#f8fafc;color:#475569;font-size:11px;font-weight:800;cursor:pointer;user-select:none}
+.facility-chip input:checked+span{background:#e3f5ea;border-color:var(--done);color:#25633f}
+.save-note{min-height:16px;margin-top:4px;color:#6b7280;font-size:10px}.save-note.saved{color:var(--done)}.save-note.error{color:#a22}
+#backupBtn{background:#fff;border:1px solid #64748b;color:#334155}
+@media(max-width:520px){.detail-grid{grid-template-columns:1fr 1fr}.detail-field:first-child{grid-column:1/-1}}
+.chk{width:21px;height:21px;accent-color:var(--done);margin-top:4px}
+.status{padding:8px 13px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:#fafafa}
+.marker-number{width:30px;height:30px;border-radius:50%;background:var(--accent);border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 2px 6px #0005}
+.marker-number.done{background:var(--done)}
+.leaflet-div-icon{background:transparent;border:0}
+.note{margin-top:9px;background:#fff;border:1px solid var(--border);border-radius:13px;padding:10px 12px;color:var(--muted);font-size:12px;line-height:1.55}
+@media(max-width:850px){
+  .layout{grid-template-columns:1fr}
+  #map{height:64vh;min-height:480px}
+  .list-panel{display:none}
+  .list-panel.open{display:block}
+  .list{max-height:none}
+  .mobile-tools{display:flex}
+}
+@media(min-width:851px){.mobile-tools{display:none}}
+.mobile-tools{
+  position:sticky;top:6px;z-index:1200;gap:7px;margin-bottom:7px
+}
+.mobile-tools button{
+  flex:1;border:0;border-radius:10px;padding:10px;font-weight:800
+}
+#showMapBtn{background:#222;color:#fff}
+#showListBtn{background:#fff;border:1px solid var(--border)}
+.popup-check{
+  display:flex;align-items:center;gap:8px;margin-top:9px;font-weight:700
+}
+.popup-check input{width:22px;height:22px;accent-color:var(--done)}
+
+
+.share-strip{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.share-status{padding:6px 10px;border-radius:999px;background:#eef2ff;border:1px solid #a5b4fc;font-size:12px;font-weight:800}
+.share-status.online{background:#eaf8ef;border-color:#65a97d;color:#25633f}
+.share-status.error{background:#fff0f0;border-color:#d88;color:#922}
+#copyShareBtn{background:#334155;color:#fff}
+.celebration{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(12,16,28,.48);backdrop-filter:blur(3px);overflow:hidden;animation:celebrationFade .35s ease both}
+.celebration-card{position:relative;z-index:2;width:min(88vw,520px);padding:28px 20px;text-align:center;color:#fff;border:2px solid #ffffff80;border-radius:24px;background:linear-gradient(145deg,#d43d49,#8f1830);box-shadow:0 24px 80px #0008;animation:celebrationPop .55s cubic-bezier(.2,.9,.25,1.25) both}
+.celebration.level-15 .celebration-card{background:linear-gradient(145deg,#a934ad,#4e237c)}
+.celebration.level-20 .celebration-card{background:linear-gradient(145deg,#e67419,#b32537)}
+.celebration.level-25 .celebration-card{background:linear-gradient(145deg,#d9a514,#d43d49);box-shadow:0 0 70px #ffd85f99,0 24px 90px #0009}
+.celebration-kicker{font-size:13px;font-weight:900;letter-spacing:.18em;opacity:.9}
+.celebration-title{margin:7px 0 5px;font-size:clamp(30px,9vw,54px);line-height:1.05;font-weight:1000;text-shadow:0 3px 12px #0005}
+.celebration-sub{font-size:15px;font-weight:800}.celebration-hint{margin-top:14px;font-size:11px;opacity:.72}
+.celebration-piece{position:absolute;top:-12vh;width:9px;height:18px;border-radius:2px;background:var(--piece);animation:pieceFall var(--fall) linear var(--delay) forwards;transform:rotate(var(--rotate))}
+.celebration-burst{position:absolute;width:8px;height:8px;border-radius:50%;left:var(--x);top:var(--y);background:var(--piece);box-shadow:0 0 12px var(--piece);animation:burst 1.15s ease-out var(--delay) both}
+@keyframes celebrationFade{from{opacity:0}to{opacity:1}}@keyframes celebrationPop{from{opacity:0;transform:scale(.72) rotate(-2deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes pieceFall{to{transform:translate(var(--drift),115vh) rotate(calc(var(--rotate) + 720deg));opacity:.2}}@keyframes burst{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+@media(prefers-reduced-motion:reduce){.celebration,.celebration-card{animation:none}.celebration-piece,.celebration-burst{display:none}}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>浜松・浜名湖 COMPLETE MAP</h1>
+<p class="sub">家族で巡る20の観光地・遊び場。行った場所を地図ごと埋めよう！</p><div style="margin-top:7px;display:inline-block;padding:4px 9px;border-radius:999px;background:#eaf7ff;border:1px solid #75b9dd;font-size:12px;font-weight:800;">FAMILY TRIP 2026</div>
+<div class="progress-row"><div class="progress"><span id="bar"></span></div><div class="count" id="count">0 / 20</div></div><div class="share-strip"><span id="shareStatus" class="share-status">共有データへ接続中…</span><button id="copyShareBtn" type="button">共有URLをコピー</button><button id="backupBtn" type="button">記録をバックアップ</button></div>
+</header>
+
+<div class="mobile-tools">
+  <button id="showMapBtn" type="button">地図を見る</button>
+  <button id="showListBtn" type="button">一覧・チェック</button>
+</div>
+<div class="layout">
+  <section class="map-panel"><div id="map"></div></section>
+  <aside class="list-panel">
+    <div class="list-head">
+      <h2>観光スポット一覧（20か所）</h2>
+      <div class="actions"><button id="fitBtn">全体表示</button><button id="resetBtn" title="チェックのみ解除。コメントは残ります">チェック解除</button></div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="status" id="status">地図を準備しています…</div>
+  </aside>
+</div>
+
+<div class="note">
+地図の位置は住所から自動取得します。
+営業時間・休館日・予約条件は変わるため、訪問前に各施設の公式サイトを確認してください。
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, onSnapshot, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBZy-k3B2_Z88qEbwMzWizQXl_RKqP6s9k",authDomain:"uguisu-map.firebaseapp.com",projectId:"uguisu-map",storageBucket:"uguisu-map.firebasestorage.app",messagingSenderId:"785750619735",appId:"1:785750619735:web:fd5d84665aad10720a1512",measurementId:"G-WXG7HP6Z1M"};
+const HOTELS=[
+  {id:1,name:"浜松城",address:"静岡県浜松市中央区元城町100-2",note:"街なか・歴史"},
+  {id:2,name:"浜松市楽器博物館",address:"静岡県浜松市中央区中央3-9-1",note:"街なか・屋内"},
+  {id:3,name:"浜松科学館 みらいーら",address:"静岡県浜松市中央区北寺島町256-3",note:"街なか・屋内"},
+  {id:4,name:"スズキ歴史館",address:"静岡県浜松市中央区増楽町1301",note:"要事前予約"},
+  {id:5,name:"航空自衛隊 浜松広報館 エアーパーク",address:"静岡県浜松市中央区西山町無番地",note:"屋内・航空機"},
+  {id:6,name:"うなぎパイファクトリー",address:"静岡県浜松市中央区大久保町748-51",note:"工場見学"},
+  {id:7,name:"中田島砂丘",address:"静岡県浜松市中央区中田島町1313",note:"屋外・夕景"},
+  {id:8,name:"はままつフラワーパーク",address:"静岡県浜松市中央区舘山寺町195",note:"花・屋外"},
+  {id:9,name:"浜松市動物園",address:"静岡県浜松市中央区舘山寺町199",note:"家族向け"},
+  {id:10,name:"浜名湖パルパル",address:"静岡県浜松市中央区舘山寺町1891",note:"遊園地"},
+  {id:11,name:"かんざんじロープウェイ",address:"静岡県浜松市中央区舘山寺町1891",note:"浜名湖の眺望"},
+  {id:12,name:"浜名湖オルゴールミュージアム",address:"静岡県浜松市中央区舘山寺町1891",note:"ロープウェイ利用"},
+  {id:13,name:"曹洞宗 舘山寺",address:"静岡県浜松市中央区舘山寺町2231",note:"寺・遊歩道"},
+  {id:14,name:"ぬくもりの森",address:"静岡県浜松市中央区和地町2949",note:"写真・散策"},
+  {id:15,name:"浜名湖ガーデンパーク",address:"静岡県浜松市中央区村櫛町5475-1",note:"公園・屋外"},
+  {id:16,name:"浜名湖遊覧船（かんざんじ港）",address:"静岡県浜松市中央区舘山寺町2226-1",note:"運航時間を確認"},
+  {id:17,name:"弁天島海浜公園",address:"静岡県浜松市中央区舞阪町弁天島3775-2",note:"海・鳥居・夕景"},
+  {id:18,name:"竜ヶ岩洞",address:"静岡県浜松市浜名区引佐町田畑193",note:"鍾乳洞・雨天可"},
+  {id:19,name:"はままつフルーツパーク時之栖",address:"静岡県浜松市浜名区都田町4263-1",note:"果物・体験"},
+  {id:20,name:"浜名湖体験学習施設 ウォット",address:"静岡県浜松市中央区舞阪町弁天島5005-3",note:"浜名湖の生き物"}
+];
+const ROOM_ID=new URLSearchParams(location.search).get("room")||"hamamatsu_20260813_7Nq4vK9mP2xR8cW5";
+const STORAGE_KEY="hamamatsu_complete_2026_v1";
+const COMMENT_KEY="hamamatsu_comments_2026_v1";
+const app=initializeApp(firebaseConfig);const db=getFirestore(app);
+const map=L.map("map",{zoomControl:true}).setView([34.718,137.726],11);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
+const list=document.getElementById("list"),statusEl=document.getElementById("status"),shareStatus=document.getElementById("shareStatus"),markers=new Map(),bounds=L.latLngBounds([]),saved={},comments={},records={},rowRefs=new Map();
+const FACILITIES=["屋内","屋外","雨天OK","子ども向け","無料","写真映え","体験あり","予約推奨"];
+const MILESTONES=[10,15,20],MILESTONE_KEY=`hamamatsu_milestones_${ROOM_ID||"local"}`;
+let initialSyncComplete=false,lastKnownDone=0;
+function setShareStatus(t,k=""){shareStatus.textContent=t;shareStatus.className="share-status"+(k?" "+k:"")}
+function markerIcon(id,done=false){return L.divIcon({className:"leaflet-div-icon",html:`<div class="marker-number ${done?"done":""}">${id}</div>`,iconSize:[30,30],iconAnchor:[15,15]})}
+function getDoneCount(){return HOTELS.filter(h=>saved[h.id]).length}
+function updateProgress(){const done=getDoneCount();document.getElementById("count").textContent=`${done} / ${HOTELS.length}`;document.getElementById("bar").style.width=`${done/HOTELS.length*100}%`;return done}
+function getSeenMilestones(){try{return new Set(JSON.parse(localStorage.getItem(MILESTONE_KEY)||"[]"))}catch{return new Set()}}
+function saveSeenMilestones(seen){localStorage.setItem(MILESTONE_KEY,JSON.stringify([...seen]))}
+function showCelebration(milestone){
+  const overlay=document.createElement("div");overlay.className=`celebration level-${milestone}`;overlay.setAttribute("role","dialog");overlay.setAttribute("aria-label",`${milestone}件制覇のお祝い`);
+  overlay.innerHTML=`<div class="celebration-card"><div class="celebration-kicker">HAMAMATSU FAMILY TRIP</div><div class="celebration-title">${milestone}か所達成<br>おめでとう！</div><div class="celebration-sub">${milestone>=20?"20 SPOTS COMPLETE！最高の家族旅！":milestone>=15?"あと5か所！ゴールが見えてきた！":"旅の思い出が増えてきた！"}</div><div class="celebration-hint">タップで閉じる</div></div>`;
+  const colors=["#ffd84d","#ff5c7a","#59d9ff","#8cff9d","#ffffff","#c88cff"],pieces=milestone>=20?56:milestone>=15?38:28;
+  for(let i=0;i<pieces;i++){const p=document.createElement("i");p.className="celebration-piece";p.style.cssText=`left:${Math.random()*100}%;--piece:${colors[i%colors.length]};--fall:${1.7+Math.random()*1.3}s;--delay:${Math.random()*.45}s;--rotate:${Math.random()*360}deg;--drift:${-70+Math.random()*140}px`;overlay.appendChild(p)}
+  if(milestone>=15){const bursts=milestone>=20?28:18;for(let i=0;i<bursts;i++){const b=document.createElement("i");b.className="celebration-burst";const a=Math.random()*Math.PI*2,d=45+Math.random()*135;b.style.cssText=`--x:${12+Math.random()*76}%;--y:${10+Math.random()*48}%;--piece:${colors[i%colors.length]};--delay:${Math.random()*.55}s;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;overlay.appendChild(b)}}
+  let timer;const close=()=>{clearTimeout(timer);overlay.remove()};overlay.addEventListener("click",close,{once:true});document.body.appendChild(overlay);timer=setTimeout(close,milestone>=20?4200:3000)
+}
+function maybeCelebrate(previous,current){if(current<=previous)return;const seen=getSeenMilestones(),crossed=MILESTONES.filter(n=>previous<n&&current>=n&&!seen.has(n));if(!crossed.length)return;crossed.forEach(n=>seen.add(n));saveSeenMilestones(seen);showCelebration(crossed[crossed.length-1])}
+function applyHotelState(id,state={}){id=Number(id);const row=rowRefs.get(id);if(!row)return;const checked=!!state.done,comment=state.comment||"";saved[id]=checked;comments[id]=comment;records[id]={...(records[id]||{}),...state,done:checked,comment};const cb=row.querySelector(".chk"),ta=row.querySelector(".comment"),day=row.querySelector(".day-type"),price=row.querySelector(".price"),room=row.querySelector(".room-number");cb.checked=checked;if(document.activeElement!==ta)ta.value=comment;if(document.activeElement!==day)day.value=state.dayType||"";if(document.activeElement!==price)price.value=state.price??"";if(document.activeElement!==room)room.value=state.roomNumber||"";const selected=new Set(Array.isArray(state.facilities)?state.facilities:[]);row.querySelectorAll(".facility").forEach(el=>el.checked=selected.has(el.value));row.classList.toggle("done",checked);const m=markers.get(id);if(m)m.setIcon(markerIcon(id,checked));updateProgress()}
+async function saveHotel(id,patch){if(!ROOM_ID)return;await setDoc(doc(db,"uguisu",ROOM_ID,"hotels",String(id)),{...patch,updatedAt:serverTimestamp()},{merge:true})}
+function buildRows(){HOTELS.forEach(h=>{const row=document.createElement("div");row.className="row";row.dataset.id=h.id;row.innerHTML=`<span class="num">${h.id}</span><span><div class="name">${h.name}</div><div class="addr">${h.address}${h.note?` ／ ${h.note}`:""}</div><div class="detail-grid"><label class="detail-field">曜日区分<select class="day-type"><option value="">未選択</option><option value="weekday">平日</option><option value="holiday">土日祝</option></select></label><label class="detail-field">使った金額（円）<input class="price" type="number" min="0" step="1" inputmode="numeric" placeholder="例：1200"></label><label class="detail-field">滞在時間（分）<input class="room-number" type="text" maxlength="30" inputmode="numeric" placeholder="例：90"></label></div><div class="facility-title">楽しみ方タグ</div><div class="facilities">${FACILITIES.map(f=>`<label class="facility-chip"><input class="facility" type="checkbox" value="${f}"><span>${f}</span></label>`).join("")}</div><div class="comment-title">感想・自由メモ</div><textarea class="comment" maxlength="300" placeholder="楽しかったこと、また行きたい理由など"></textarea><div class="save-note" aria-live="polite"></div></span><input class="chk" type="checkbox" aria-label="${h.name}に行った">`;const cb=row.querySelector(".chk"),ta=row.querySelector(".comment"),day=row.querySelector(".day-type"),price=row.querySelector(".price"),room=row.querySelector(".room-number"),note=row.querySelector(".save-note");cb.addEventListener("change",async()=>{const previous=getDoneCount();row.classList.toggle("done",cb.checked);saved[h.id]=cb.checked;records[h.id]={...(records[h.id]||{}),done:cb.checked};const m=markers.get(h.id);if(m)m.setIcon(markerIcon(h.id,cb.checked));const current=updateProgress();if(initialSyncComplete)maybeCelebrate(previous,current);lastKnownDone=current;try{await saveHotel(h.id,{done:cb.checked})}catch(e){console.error(e);setShareStatus("チェック保存に失敗","error")}});let timer,pending={};const queueSave=(patch)=>{pending={...pending,...patch};records[h.id]={...(records[h.id]||{}),...patch};note.textContent="保存中…";note.className="save-note";clearTimeout(timer);timer=setTimeout(async()=>{const payload=pending;pending={};try{await saveHotel(h.id,payload);note.textContent="保存済み ✓";note.className="save-note saved";setTimeout(()=>{if(note.textContent==="保存済み ✓")note.textContent=""},1800)}catch(e){console.error(e);pending={...payload,...pending};note.textContent="保存に失敗しました";note.className="save-note error";setShareStatus("記録保存に失敗","error")}},500)};ta.addEventListener("input",()=>{comments[h.id]=ta.value;queueSave({comment:ta.value})});day.addEventListener("change",()=>queueSave({dayType:day.value}));price.addEventListener("input",()=>queueSave({price:price.value===""?null:Number(price.value)}));room.addEventListener("input",()=>queueSave({roomNumber:room.value}));row.querySelectorAll(".facility").forEach(el=>el.addEventListener("change",()=>queueSave({facilities:[...row.querySelectorAll(".facility:checked")].map(x=>x.value)})));rowRefs.set(h.id,row);list.appendChild(row)})}
+async function connectSharedData(){if(!ROOM_ID){setShareStatus("共有URLが不正です","error");statusEl.textContent="URLに共有ルームが指定されていません。";document.querySelectorAll(".chk,.comment").forEach(el=>el.disabled=true);return}const hotelsRef=collection(db,"uguisu",ROOM_ID,"hotels");try{const existing=await getDocs(hotelsRef);if(existing.empty){const lc=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}"),lm=JSON.parse(localStorage.getItem(COMMENT_KEY)||"{}");if(Object.keys(lc).length||Object.keys(lm).length){const batch=writeBatch(db);HOTELS.forEach(h=>{if(lc[h.id]||lm[h.id])batch.set(doc(db,"uguisu",ROOM_ID,"hotels",String(h.id)),{done:!!lc[h.id],comment:lm[h.id]||"",updatedAt:serverTimestamp()},{merge:true})});await batch.commit()}}onSnapshot(hotelsRef,snap=>{const previous=lastKnownDone;snap.docChanges().forEach(ch=>applyHotelState(ch.doc.id,ch.type==="removed"?{done:false,comment:""}:ch.doc.data()));const current=getDoneCount();if(initialSyncComplete)maybeCelebrate(previous,current);else{const seen=getSeenMilestones();MILESTONES.filter(n=>current>=n).forEach(n=>seen.add(n));saveSeenMilestones(seen);initialSyncComplete=true}lastKnownDone=current;setShareStatus("リアルタイム共有中","online")},e=>{console.error(e);setShareStatus("共有接続エラー","error")})}catch(e){console.error(e);setShareStatus("共有接続エラー","error")}}
+const cache=JSON.parse(localStorage.getItem("hamamatsu_gsi_cache_v1")||"{}");
+async function geocode(h){if(cache[h.address])return cache[h.address];const q=h.address.replace("静岡県","");const r=await fetch("https://msearch.gsi.go.jp/address-search/AddressSearch?q="+encodeURIComponent(q));if(!r.ok)throw new Error("GSI");const j=await r.json();if(!Array.isArray(j)||!j.length||!j[0].geometry)throw new Error("not found");const c=j[0].geometry.coordinates,p={lat:Number(c[1]),lon:Number(c[0])};cache[h.address]=p;localStorage.setItem("hamamatsu_gsi_cache_v1",JSON.stringify(cache));return p}
+async function buildMap(){let ok=0,fail=0;for(let i=0;i<HOTELS.length;i++){const h=HOTELS[i];statusEl.textContent=`位置確認中… ${i+1} / ${HOTELS.length}`;try{const p=await geocode(h);let lat=p.lat,lon=p.lon;if([10,11,12].includes(h.id)){lat+=(h.id-11)*0.00012;lon+=(h.id-11)*0.00012}const m=L.marker([lat,lon],{icon:markerIcon(h.id,!!saved[h.id])}).addTo(map);m.bindPopup(`<div><b>${h.id}. ${h.name}</b><br><span style="font-size:11px">${h.address}</span><br><span style="font-size:11px;color:#666">${h.note||""}</span></div>`);markers.set(h.id,m);bounds.extend([lat,lon]);ok++}catch(e){fail++;const a=document.querySelector(`.row[data-id="${h.id}"] .addr`);if(a)a.textContent=h.address+"（位置取得失敗）"}await new Promise(r=>setTimeout(r,120))}if(bounds.isValid())map.fitBounds(bounds.pad(.08));statusEl.textContent=`位置取得完了：${ok}か所${fail?`／未取得 ${fail}か所`:""}`}
+document.getElementById("copyShareBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(location.href);const b=document.getElementById("copyShareBtn"),o=b.textContent;b.textContent="コピー完了";setTimeout(()=>b.textContent=o,1500)}catch{prompt("このURLをコピーしてください",location.href)}});
+document.getElementById("backupBtn").addEventListener("click",()=>{const data={version:1,exportedAt:new Date().toISOString(),roomId:ROOM_ID,spots:HOTELS.map(h=>({id:h.id,name:h.name,address:h.address,done:!!saved[h.id],comment:comments[h.id]||"",dayType:records[h.id]?.dayType||"",price:records[h.id]?.price??null,duration:records[h.id]?.roomNumber||"",tags:Array.isArray(records[h.id]?.facilities)?records[h.id].facilities:[]}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`hamamatsu-complete-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+document.getElementById("fitBtn").addEventListener("click",()=>{if(bounds.isValid())map.fitBounds(bounds.pad(.08))});
+document.getElementById("resetBtn").addEventListener("click",async()=>{if(!ROOM_ID||!confirm("共有している全チェックを解除します。コメントは残します。"))return;try{const batch=writeBatch(db);HOTELS.forEach(h=>batch.set(doc(db,"uguisu",ROOM_ID,"hotels",String(h.id)),{done:false,updatedAt:serverTimestamp()},{merge:true}));await batch.commit()}catch(e){console.error(e);setShareStatus("全解除に失敗","error")}});
+const listPanel=document.querySelector(".list-panel"),mapPanel=document.querySelector(".map-panel");document.getElementById("showListBtn")?.addEventListener("click",()=>{listPanel.classList.add("open");listPanel.scrollIntoView({behavior:"smooth",block:"start"})});document.getElementById("showMapBtn")?.addEventListener("click",()=>{listPanel.classList.remove("open");mapPanel.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>map.invalidateSize(),250)});
+buildRows();updateProgress();connectSharedData();buildMap();
+</script>
+</body>
+</html>
